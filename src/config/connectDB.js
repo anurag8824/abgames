@@ -1,4 +1,4 @@
-// const mysql = require('mysql2/promise');
+const mysql = require('mysql2/promise');
 
 // const connection = mysql.createPool({
 //     host: 'localhost',
@@ -13,22 +13,21 @@
 
 // module.exports = connection;
 
-const mysql = require('mysql2/promise');
+// const mysql = require('mysql2/promise');
+
+// const connection = mysql.createPool({
+//   host: '127.0.0.1',  // or '127.0.0.1'
+//   user: 'avaitorgame',
+//   password: 'Avatior123',
+//   database: 'gamedb'
+// });
 
 const connection = mysql.createPool({
-    host: 'localhost', // or '127.0.0.1' since it's on the same EC2 server
-    user: 'gameuser',
-    password: 'Avatior@123',
+    host: 'localhost',
+    user: 'root',
+    password: '',  // XAMPP's default root password is blank
     database: 'gameavitor',
     port: 3306
 });
-
-// const connection = mysql.createPool({
-//     host: 'localhost',
-//     user: 'root',
-//     password: '',  // XAMPP's default root password is blank
-//     database: 'goagamesclub',
-//     port: 3306
-// });
 
 module.exports = connection;

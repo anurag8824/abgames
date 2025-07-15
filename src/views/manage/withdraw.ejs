@@ -5,7 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Withdraw money</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link href="//cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet">
@@ -16,70 +17,78 @@
 <body class="hold-transition sidebar-mini">
   <div class="wrapper">
     <%- include('nav') %>
-    <div class="content-wrapper">
-      <section class="content-header">
-        <div class="container-fluid">
-          <div class="row mb-2">
-            <div class="col-sm-6">
-              <h1>Browse withdrawals <img data-v-7b283485="" width="35px" height="35px" src="/images/withdraw.png" class="chackImg"></h1>
+      <div class="content-wrapper">
+        <section class="content-header">
+          <div class="container-fluid">
+            <div class="row mb-2">
+              <div class="col-sm-6">
+                <h1>Browse withdrawals <img data-v-7b283485="" width="35px" height="35px" src="/images/withdraw.png"
+                    class="chackImg"></h1>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="content">
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Withdrawals Requests</h3>
+        <section class="content">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Withdrawals Requests</h3>
 
-            <div class="card-tools">
-              <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                <i class="fas fa-minus"></i>
-              </button>
-              <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                <i class="fas fa-times"></i>
-              </button>
+              <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                  <i class="fas fa-minus"></i>
+                </button>
+                <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div class="card-body p-0" style="overflow-y: hidden;">
-            <table class="table table-striped projects">
-              <thead>
-                <tr>
-                  <th class="text-center">#</th>
-                  <th class="text-center">Account</th>
-                  <th class="text-center">Bank</th>
-                  <th class="text-center">Account Number</th>
-                  <th class="text-center">Account Name</th>
-                  <th class="text-center">IFSC</th>
-                  <th class="text-center">UPI ID</th>
-                  <th class="text-center">Amount</th>
-                  <th class="text-center">Date</th>
-                  <th class="text-center">Status</th>
-                  <th class="text-center">Accept/Reject</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Table body will be populated dynamically -->
-              </tbody>
-            </table>
-          </div>
+            <div class="card-body p-0" style="overflow-y: hidden;">
+              <table class="table table-striped projects">
+                <thead>
+                  <tr>
+                    <th class="text-center">#</th>
+                    <th class="text-center">Account</th>
+                    <th class="text-center">Bank</th>
+                    <th class="text-center">Account Number</th>
+                    <th class="text-center">Account Name</th>
+                    <th class="text-center">IFSC</th>
+                    <th class="text-center">UPI ID</th>
+                    <th class="text-center">Amount</th>
+                    <th class="text-center">Date</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Accept/Reject</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Table body will be populated dynamically -->
+                </tbody>
+              </table>
+            </div>
 
-          <nav aria-label="Page navigation example" style="margin-top: 20px;display: flex;justify-content: center;">
-            <ul class="pagination table1">
-              <li class="page-item previous">
-                <a class="page-link" href="#" tabindex="-1">Previous</a>
-              </li>
-              <div id="numbers" style="display: flex;"></div>
-              <li class="page-item next">
-                <a class="page-link" href="#">Next</a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </section>
-    </div>
+            <nav aria-label="Page navigation example" style="margin-top: 20px;display: flex;justify-content: center;">
+              <ul class="pagination table1">
+                <li class="page-item previous">
+                  <a class="page-link" href="#" tabindex="-1">Previous</a>
+                </li>
+                <div id="numbers" style="display: flex;"></div>
+                <li class="page-item next">
+                  <a class="page-link" href="#">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </section>
+      </div>
   </div>
+
+  <div style="text-align: center; margin: 20px 0;">
+    <button id="approve-all-btn" class="btn btn-primary">
+      <i class="fa fa-check-circle"></i> Approve All
+    </button>
+  </div>
+
 
   <script src="/plugins/jquery/jquery.min.js"></script>
   <script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -151,8 +160,8 @@
         url: `/api/webapi/admin/recharge?limit=10&page=${page}`,
         dataType: "json",
         success: function (response) {
-          totalPages = Math.ceil(response.count[2][0].totalCount/10);
-          console.log(response.count,'j')
+          totalPages = Math.ceil(response.count[2][0].totalCount / 10);
+          console.log(response.count, 'j')
           show(response.datas3);
           $('#numbers').text(`${current} / ${totalPages}`);
 
@@ -195,60 +204,82 @@
     // Confirm button event
     $(document).on('click', '.btn-success', function (e) {
       e.preventDefault();
-      Swal.fire({
-    title: 'Are you sure?',
-    text: "You want to accept this withdraw?",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Yes, accept it!'
-  }).then((result) => {
-    if(result.isConfirmed){
       let id = $(this).attr('data');
+
       $.ajax({
         type: "POST",
         url: "/api/webapi/admin/withdraw",
         data: { id: id, type: 'confirm' },
         dataType: "json",
         success: function () {
-          Swal.fire('Good job!', 'Withdrawal Accepted Successfully!', 'success');
-          setTimeout(() => { location.reload(); }, 100);
+          // Optionally simple alert
+          // alert('Withdrawal Accepted Successfully!');
+          setTimeout(() => {
+            location.reload();
+          }, 100);
         }
       });
-    }
-  })
-     
     });
+
 
     // Delete button event
     $(document).on('click', '.btn-danger', function (e) {
       e.preventDefault();
-      Swal.fire({
-    title: 'Are you sure?',
-    text: "You want to reject this withdraw?",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Yes, delete it!'
-  }).then((result) => {
-    if(result.isConfirmed){
       let id = $(this).attr('data');
+
       $.ajax({
         type: "POST",
         url: "/api/webapi/admin/withdraw",
         data: { id: id, type: 'delete' },
         dataType: "json",
         success: function () {
-          Swal.fire('Good job!', 'Withdrawal Rejected Successfully!', 'success');
-          setTimeout(() => { location.reload(); }, 100);
+          // Optionally show a simple alert
+          // alert('Withdrawal Rejected Successfully!');
+          setTimeout(() => {
+            location.reload();
+          }, 100);
         }
       });
-    }
-  })
-      
     });
+
+
+
+    $('#approve-all-btn').click(function () {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "This will approve all pending withdrawal requests.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, approve all!',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $.ajax({
+            type: "POST",
+            url: "/api/webapi/admin/withdraw/approve/all",
+            dataType: "json",
+            success: function (response) {
+              Swal.fire(
+                'Approved!',
+                'All withdrawal requests have been approved.',
+                'success'
+              );
+              setTimeout(() => {
+                location.reload();
+              }, 1000);
+            },
+            error: function () {
+              Swal.fire(
+                'Error!',
+                'Something went wrong. Try again later.',
+                'error'
+              );
+            }
+          });
+        }
+      });
+    });
+
   </script>
 </body>
 

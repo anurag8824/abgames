@@ -7,7 +7,7 @@
     <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
 
     <!--====== Title ======-->
-    <title>{{ env('APP_NAME') }}</title>
+    <title>real cash</title>
 
     <!--====== Favicon Icon ======-->
     <link rel="shortcut icon" href="{{ asset('images/logo.png') }}" type="image/png" />
@@ -1228,8 +1228,8 @@
         <script src="/Aviator/user/aviatorold.js?v={{env('APP_VERSION')}}"></script>
         <script src="/Aviator/user/aviatorbyapp.js?v={{env('APP_VERSION')}}"></script>
         <script>
-            $('#main_bet_now').prop('disabled', true);
-            $('#extra_bet_now').prop('disabled', true);
+            // $('#main_bet_now').prop('disabled', true);
+            // $('#extra_bet_now').prop('disabled', true);
             var successMessage = '';
             var errorMessage = '';
             let game_id = 0;
@@ -1245,31 +1245,31 @@
 
 
         <script>
-            $(".game-centeral-loading").hide();
+            // $(".game-centeral-loading").hide();
             $(document).ready(function () {
                 console.log('started');
 
-                document.addEventListener("touchstart", function (event) {
-                    // Check if the page is at the top and the user is pulling down
-                    if (window.scrollY === 0 && event.touches.length > 0) {
-                        const touchStartY = event.touches[0].clientY;
+                // document.addEventListener("touchstart", function (event) {
+                //     // Check if the page is at the top and the user is pulling down
+                //     if (window.scrollY === 0 && event.touches.length > 0) {
+                //         const touchStartY = event.touches[0].clientY;
 
-                        // Save the starting Y position of the touch to determine direction
-                        event.target.touchStartY = touchStartY;
-                    }
-                }, { passive: true });
+                //         // Save the starting Y position of the touch to determine direction
+                //         event.target.touchStartY = touchStartY;
+                //     }
+                // }, { passive: true });
 
-                document.addEventListener("touchmove", function (event) {
-                    // If the user is at the top and is trying to pull down (negative movement)
-                    if (window.scrollY === 0 && event.target.touchStartY !== undefined) {
-                        const touchCurrentY = event.touches[0].clientY;
+                // document.addEventListener("touchmove", function (event) {
+                //     // If the user is at the top and is trying to pull down (negative movement)
+                //     if (window.scrollY === 0 && event.target.touchStartY !== undefined) {
+                //         const touchCurrentY = event.touches[0].clientY;
 
-                        // Only prevent the default behavior when pulling down
-                        if (touchCurrentY > event.target.touchStartY) {
-                            event.preventDefault(); // Prevent pull-to-refresh
-                        }
-                    }
-                }, { passive: false });
+                //         // Only prevent the default behavior when pulling down
+                //         if (touchCurrentY > event.target.touchStartY) {
+                //             event.preventDefault(); // Prevent pull-to-refresh
+                //         }
+                //     }
+                // }, { passive: false });
 
 
                 info_data({
@@ -1280,21 +1280,22 @@
 
                 $(".load-txt").hide();
 
-                let isflying = false;
-                let maxVlue = 2;
+                let isflying = true;
+                let current_Value = 1;
                 let current_speed = 0.01;
 
-                socket.emit('initialValReq');
+                // socket.emit('initialValReq');
 
-                socket.on('initialVal', (msg) => {
-                    console.log(msg, 'msg data');
-                    isflying = msg.isFlying;
-                    current_Value = msg.current_Value;
-                    current_speed = msg.speed;
-                    // maxValue = msg.maxValue;
-                    gamegenerate(isflying, current_Value, current_speed);
-                })
+                // socket.on('initialVal', (msg) => {
+                //     console.log(msg, 'msg data');
+                //     isflying = msg.isFlying;
+                //     current_Value = msg.current_Value;
+                //     current_speed = msg.speed;
+                //     // maxValue = msg.maxValue;
+                   
+                // })
 
+                gamegenerate(isflying, current_Value, current_speed);
 
                 if (successMessage != undefined && successMessage != '') {
                     swal('Success', successMessage, "success");

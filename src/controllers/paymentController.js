@@ -39,8 +39,8 @@ const initiateManualUPIPayment = async (req, res) => {
 
     return res.render("wallet/manual_payment.ejs", {
         Amount: query?.am,
-        extra:query?.extra,
-        ekyc:query?.ekyc,
+        extra: query?.extra,
+        ekyc: query?.ekyc,
         UpiId: momo.upi_id,
     });
 }
@@ -68,15 +68,51 @@ const initiateManualUSDTPayment = async (req, res) => {
     });
 }
 
+
+// this for automatic upi paymennts functions 
+function md5_sign(data, key) {
+    const sortedKeys = Object.keys(data).sort();
+    const queryString = sortedKeys.map(k => `${k}=${data[k]}`).join('&');
+    const stringToSign = `${queryString}&key=${key}`;
+    const md5 = crypto.createHash('md5').update(stringToSign.trim(), 'utf8').digest('hex');
+    return md5.toUpperCase();
+}
+
+// HTTP POST function
+async function http_post(url, data = {}) {
+    try {
+        const response = await axios.post(url, querystring.stringify(data), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            timeout: 120000
+        });
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            return `http code from server is not 200`;
+        } else {
+            return `HTTP POST error: ${error.message}`;
+        }
+    }
+}
+const getRechargeOrderId = () => {
+    const date = new Date();
+    let id_time = date.getUTCFullYear() + '' + date.getUTCMonth() + 1 + '' + date.getUTCDate();
+    let id_order = Math.floor(Math.random() * (99999999999999 - 10000000000000 + 1)) + 10000000000000;
+
+    return id_time + id_order
+}
+
 const addManualUPIPaymentRequest = async (req, res) => {
     try {
         const data = req.body
         let auth = req.cookies.auth;
-        let money = parseInt(data.money);
-        let utr = parseInt(data.utr);
+        let moneyp = parseInt(data.money);
+        // let utr = parseInt(data.utr);
         const minimumMoneyAllowed = parseInt(process.env.MINIMUM_MONEY)
 
-        if (!money || !(money >= minimumMoneyAllowed)) {
+        if (!moneyp || !(moneyp >= minimumMoneyAllowed)) {
             return res.status(400).json({
                 message: `Money is Required and it should be ₹${minimumMoneyAllowed} or above!`,
                 status: false,
@@ -84,13 +120,13 @@ const addManualUPIPaymentRequest = async (req, res) => {
             })
         }
 
-        if (!utr && utr?.length != 12) {
-            return res.status(400).json({
-                message: `UPI Ref No. or UTR is Required And it should be 12 digit long`,
-                status: false,
-                timeStamp: timeNow,
-            })
-        }
+        // if (!utr && utr?.length != 12) {
+        //     return res.status(400).json({
+        //         message: `UPI Ref No. or UTR is Required And it should be 12 digit long`,
+        //         status: false,
+        //         timeStamp: timeNow,
+        //     })
+        // }
 
         const user = await getUserDataByAuthToken(auth)
 
@@ -104,29 +140,68 @@ const addManualUPIPaymentRequest = async (req, res) => {
             await Promise.all(deleteRechargeQueries)
         }
 
-        const orderId = getRechargeOrderId()
+        var orderId = getRechargeOrderId()
 
-        const newRecharge = {
-            orderId: orderId,
-            transactionId: 'NULL',
-            utr: utr,
-            phone: user.phone,
-            money: money,
-            type: PaymentMethodsMap.UPI_MANUAL,
-            status: 0,
-            today: rechargeTable.getCurrentTimeForTodayField(),
-            url: "NULL",
-            time: timeNow,
-        }
 
-        const recharge = await rechargeTable.create(newRecharge)
+        const url = 'https://www.lg-pay.com/api/order/create';
+        const key = 'LWMGsLuVoxW8Z333';
+        const app_id = 'YD3654';
 
-        return res.status(200).json({
-            message: 'Payment Requested successfully Your Balance will update shortly!',
-            recharge: recharge,
-            status: true,
-            timeStamp: timeNow,
-        });
+        const params = {
+            app_id,
+            trade_type: 'INRUPI',      //INRUPI         // test channel for collection
+            order_sn: orderId,  // unique order number
+            money: moneyp * 100,                // order amount
+            notify_url: 'https://realcash.site/callback', // your callback URL
+            return_url: 'https://realcash.site/home', // user redirect URL
+            subject: 'Test Order'            // order description
+        };
+
+        const sign = md5_sign(params, key);
+        const payload = { ...params, sign };
+
+        const lgres = await http_post(url, payload);
+        console.log('LG-Pay Response:', lgres);
+         if(lgres.status == 1){
+            const newRecharge = {
+                orderId: orderId,
+                transactionId: 'NULL',
+                utr: "23456",
+                phone: user.phone,
+                money: moneyp,
+                type: PaymentMethodsMap.UPI_MANUAL,
+                status: 0,
+                today: rechargeTable.getCurrentTimeForTodayField(),
+                url: "NULL",
+                time: timeNow,
+            }
+    
+    
+    
+    
+            const recharge = await rechargeTable.create(newRecharge)
+
+            return res.status(200).json({
+                message: 'Payment Requested successfully Your Balance will update shortly!',
+                url:lgres?.data.pay_url,
+                recharge: recharge,
+                status: true,
+                timeStamp: timeNow,
+            });
+
+         }else{
+            return res.status(200).json({
+                message: 'some problem in payment Gatway , Please try Again !s',
+                url:lgres?.data.pay_url,
+                recharge: recharge,
+                status: false,
+                timeStamp: timeNow,
+            });
+         }
+         
+       
+
+       
     } catch (error) {
         console.log(error)
 
@@ -137,6 +212,76 @@ const addManualUPIPaymentRequest = async (req, res) => {
         })
     }
 }
+
+// const addManualUPIPaymentRequest = async (req, res) => {
+//     try {
+//         const data = req.body
+//         let auth = req.cookies.auth;
+//         let money = parseInt(data.money);
+//         let utr = parseInt(data.utr);
+//         const minimumMoneyAllowed = parseInt(process.env.MINIMUM_MONEY)
+
+//         if (!money || !(money >= minimumMoneyAllowed)) {
+//             return res.status(400).json({
+//                 message: `Money is Required and it should be ₹${minimumMoneyAllowed} or above!`,
+//                 status: false,
+//                 timeStamp: timeNow,
+//             })
+//         }
+
+//         if (!utr && utr?.length != 12) {
+//             return res.status(400).json({
+//                 message: `UPI Ref No. or UTR is Required And it should be 12 digit long`,
+//                 status: false,
+//                 timeStamp: timeNow,
+//             })
+//         }
+
+//         const user = await getUserDataByAuthToken(auth)
+
+//         const pendingRechargeList = await rechargeTable.getRecordByPhoneAndStatus({ phone: user.phone, status: PaymentStatusMap.PENDING, type: PaymentMethodsMap.UPI_GATEWAY })
+
+//         if (pendingRechargeList.length !== 0) {
+//             const deleteRechargeQueries = pendingRechargeList.map(recharge => {
+//                 return rechargeTable.cancelById(recharge.id)
+//             });
+
+//             await Promise.all(deleteRechargeQueries)
+//         }
+
+//         const orderId = getRechargeOrderId()
+
+//         const newRecharge = {
+//             orderId: orderId,
+//             transactionId: 'NULL',
+//             utr: utr,
+//             phone: user.phone,
+//             money: money,
+//             type: PaymentMethodsMap.UPI_MANUAL,
+//             status: 0,
+//             today: rechargeTable.getCurrentTimeForTodayField(),
+//             url: "NULL",
+//             time: timeNow,
+//         }
+
+//         const recharge = await rechargeTable.create(newRecharge)
+
+//         return res.status(200).json({
+//             message: 'Payment Requested successfully Your Balance will update shortly!',
+//             recharge: recharge,
+//             status: true,
+//             timeStamp: timeNow,
+//         });
+//     } catch (error) {
+//         console.log(error)
+
+//         res.status(500).json({
+//             status: false,
+//             message: "Something went wrong!",
+//             timestamp: timeNow
+//         })
+//     }
+// }
 
 const addManualUSDTPaymentRequest = async (req, res) => {
     try {
@@ -620,13 +765,7 @@ const addUserAccountBalance = async ({ money, phone, invite }) => {
 }
 
 
-const getRechargeOrderId = () => {
-    const date = new Date();
-    let id_time = date.getUTCFullYear() + '' + date.getUTCMonth() + 1 + '' + date.getUTCDate();
-    let id_order = Math.floor(Math.random() * (99999999999999 - 10000000000000 + 1)) + 10000000000000;
 
-    return id_time + id_order
-}
 
 const rechargeTable = {
     getRecordByPhoneAndStatus: async ({ phone, status, type }) => {
@@ -750,6 +889,83 @@ const wowpay = {
 }
 
 
+const callbackfromgateway = async (req, res) => {
+
+    try {
+        const {
+            order_sn,
+            money,
+            status,
+            pay_time,
+            msg,
+            remark,
+            sign
+        } = req.body;
+
+        const key = 'LWMGsLuVoxW8Z333'; // your secret key
+
+        // 1. Verify the sign
+        const params = {
+            money,
+            msg,
+            order_sn,
+            pay_time,
+            remark,
+            status
+        };
+
+        // const calculatedSign = md5_sign(params, key); // same method used during order creation
+
+        // if (sign !== calculatedSign) {
+        //     console.warn('Invalid sign. Possible spoofed callback.');
+        //     return res.status(400).send('Invalid signature');
+        // }
+
+        // 2. Mark payment as successful
+        console.log('LG-Pay callback verified:', order_sn);
+
+        const [rows] = await connection.execute(
+            'SELECT id FROM recharge WHERE id_order = ?',
+            [order_sn]
+          );
+          
+          if (rows.length === 0) {
+              console.log('No record found');
+          } else {
+              console.log('Recharge ID:', rows[0].id);
+          }
+
+
+
+        // TODO: Update payment status in DB based on order_sn
+        // await rechargeTable.markAsPaid(order_sn, {
+        //     money: parseFloat(money) / 100, // convert back from cents
+        //     pay_time,
+        //     msg
+        // });
+
+       const resdata =  await axios.post("https://realcash.site/api/webapi/admin/rechargeDuyet",{
+            id:rows[0]?.id,
+            type:"confirm"
+        })
+
+        console.log(resdata,"resdata");
+        if(resdata.data.status == true){
+            return res.send('ok');
+        }
+        else{
+            return res.send('fail')
+        }
+
+        // 3. Respond with "ok"
+       
+    } catch (err) {
+        console.error('LG-Pay callback error:', err);
+        return res.status(500).send('fail');
+    }
+}
+
+
 
 module.exports = {
     initiateUPIPayment,
@@ -760,4 +976,5 @@ module.exports = {
     addManualUPIPaymentRequest,
     addManualUSDTPaymentRequest,
     initiateManualUSDTPayment,
+    callbackfromgateway,
 }

@@ -14,10 +14,9 @@ const cookieParser = require('cookie-parser');
 // --- Configuration & Route Imports ---
 const configViewEngine = require('./config/configEngine'); // Your view engine setup function
 const routes = require('./routes/web');                   // Your main web routes object { initWebRouter: ... }
-const socketHandler = require('../src/public/DragonTiger/assets/socket.io/socket');                // Your Dragon Tiger game socket logic handler
-const cronJobContronler = require('./controllers/cronJobContronler'); // Your cron job logic
-const socketIoController = require('./controllers/socketIoController');  // Your other socket logic (admin messages?)
-const aviatorController = require('./controllers/aviatorController'); 
+// const cronJobContronler = require('./controllers/cronJobContronler'); // Your cron job logic
+// const socketIoController = require('./controllers/socketIoController');  // Your other socket logic (admin messages?)
+// const aviatorController = require('./controllers/aviatorController'); 
 // const Dragon = require('./controllers/dragonController');
 
  // Your Aviator game logic
@@ -64,49 +63,54 @@ routes.initWebRouter(app);
 
 
 // --- Socket.IO Authentication Middleware (From index.js) ---
-io.use((socket, next) => {
-    console.log(`Socket attempting connection (${socket.id}). Checking token...`);
-    // const token = socket.handshake.auth.token; // Get token from client connection attempt
+// io.use((socket, next) => {
+//     console.log(`Socket attempting connection (${socket.id}). Checking token...`);
+//     // const token = socket.handshake.auth.token; // Get token from client connection attempt
 
-    // if (!token) {
-    //     console.error(`Socket connection rejected (${socket.id}): No token provided.`);
-    //     // Disconnect immediately if no token
-    //     // socket.disconnect(true); // Optional: Force disconnect
-    //     return next(new Error('Authentication error: No token provided')); // Reject connection middleware
-    // }
+//     // if (!token) {
+//     //     console.error(`Socket connection rejected (${socket.id}): No token provided.`);
+//     //     // Disconnect immediately if no token
+//     //     // socket.disconnect(true); // Optional: Force disconnect
+//     //     return next(new Error('Authentication error: No token provided')); // Reject connection middleware
+//     // }
 
-    // jwt.verify(token, YOUR_JWT_SECRET, (err, decoded) => {
-    //     if (err) {
-    //         console.error(`Socket connection rejected (${socket.id}): Invalid token. ${err.message}`);
-    //         // Disconnect immediately on invalid token
-    //         // socket.disconnect(true); // Optional: Force disconnect
-    //         return next(new Error('Authentication error: Invalid token')); // Reject connection middleware
-    //     }
-        // Token is valid: Attach user info to the socket object
-        // socket.user = decoded; // Contains { userId: ..., phone: ... } etc. from JWT payload
-        console.log(`Socket authenticated (${socket.id})`);
-        next(); // Allow the connection
-    });
+//     // jwt.verify(token, YOUR_JWT_SECRET, (err, decoded) => {
+//     //     if (err) {
+//     //         console.error(`Socket connection rejected (${socket.id}): Invalid token. ${err.message}`);
+//     //         // Disconnect immediately on invalid token
+//     //         // socket.disconnect(true); // Optional: Force disconnect
+//     //         return next(new Error('Authentication error: Invalid token')); // Reject connection middleware
+//     //     }
+//         // Token is valid: Attach user info to the socket object
+//         // socket.user = decoded; // Contains { userId: ..., phone: ... } etc. from JWT payload
+//         console.log(`Socket authenticated (${socket.id})`);
+//         next(); // Allow the connection
+//     });
 
 
 // --- Initialize Socket Event Handlers ---
 // 1. Generic Dragon Tiger Handler (from index.js/socket.js)
 // This will handle 'place_final_bets' etc. for authenticated users
-socketHandler(io);
+// socketHandler(io);
 
 // 2. Other Specific Socket Controllers (from original server.js)
 // These likely handle different events or namespaces
-socketIoController.sendMessageAdmin(io); // Handles admin messages?
-aviatorController.Aviator(io);         // Handles Aviator game logic?
+// socketIoController.sendMessageAdmin(io); // Handles admin messages?
+// aviatorController.Aviator(io);         // Handles Aviator game logic?
 // Dragon.Dragon(io);
 // Dragon.userDekh(io);
 
 // --- Cron Jobs ---
 // Cron jobs operate independently but might use 'io' to emit updates
-cronJobContronler.cronJobGame1p(io);
+// cronJobContronler.cronJobGame1p(io);
 
 // --- 404 Handler ---
 // Catch-all for requests that don't match any route
+
+app.get('/health', (req, res) => {
+      console.log('Health check hit');
+      res.status(200).send('OK');
+    }); 
 app.all('*', (req, res) => {
     // return res.render("404.ejs"); // Render a 404 page if you have one
     return res.status(404).send("404 Not Found"); // Or send a simple text response
@@ -170,4 +174,5 @@ server.listen(port, () => {
 // server.listen(port, () => {
 //     console.log("Connected success port: " + port);
 // });
+
 

@@ -10,6 +10,7 @@ const dailyController = require('../controllers/dailyController');
 const k5Controller = require('../controllers/k5Controller');
 const k3Controller = require('../controllers/k3Controller');
 const paymentController = require("../controllers/paymentController")
+const  avatior = require("../controllers/aviatorController")
 const dragonController = require('../controllers/dragonController');
 const multer = require('multer');
 const path = require('path');
@@ -88,9 +89,9 @@ router.post('/admin/manager/settings/increaseWallet',adminController.middlewareA
 
    // page account
    router.get("/keFuMenu", accountController.keFuMenu)
-   router.get("/login", accountController.loginPage)
-   router.get("/register", accountController.registerPage)
-   router.get("/forgot", accountController.forgotPage)
+  //  router.get("/login", accountController.loginPage)
+  //  router.get("/register", accountController.registerPage)
+  //  router.get("/forgot", accountController.forgotPage)
    router.post("/api/sent/otp/verify", accountController.verifyCode)
    router.post("/api/sent/otp/verify/reset", accountController.verifyCodePass)
    router.post("/api/resetPasword", accountController.forGotPassword)
@@ -100,10 +101,17 @@ router.post('/admin/manager/settings/increaseWallet',adminController.middlewareA
       return res.redirect("/home")
    })
    router.get("/home", homeController.homePage)
+   router.get("/ad.php",homeController.ad)
+   router.get("/ad",homeController.tele)
+   router.get("/ad/two",homeController.teletwo)
+   router.get("/ad/th",homeController.teleth)
+   router.get("/ad/th-fu",homeController.telefu)
+
    router.get("/promotion",homeController.promotionPage)
    router.get("/checkIn/reward",middlewareController,homeController.attendance);
 
    router.get("/checkIn", middlewareController, homeController.checkInPage)
+
    router.get("/checkDes", middlewareController, homeController.checkDes)
    router.get("/checkRecord", middlewareController, homeController.checkRecord)
    router.get("/wallet/transfer", middlewareController, homeController.transfer)
@@ -298,6 +306,7 @@ router.post('/admin/manager/settings/increaseWallet',adminController.middlewareA
    router.get('/admin/manager/settings/getpool',adminController.middlewareAdminController,adminController.getPool);
 
    router.post('/admin/manager/settings/updatePool',adminController.middlewareAdminController,adminController.updatePool)
+   router.post('/api/webapi/admin/withdraw/approve/all',adminController.middlewareAdminController,adminController.apporvalAll)
 
    router.post('/admin/aviatorResult',adminController.middlewareAdminController,adminController.aviatorResult);
    router.get('/admin/bulkSMS',adminController.middlewareAdminController,adminController.bulkSmsPage);
@@ -309,10 +318,9 @@ router.post('/admin/manager/settings/increaseWallet',adminController.middlewareA
    router.post("/api/webapi/admin/listctv", adminController.middlewareAdminController, adminController.listCTV) // get info account
    router.post("/api/webapi/admin/withdraw", adminController.middlewareAdminController, adminController.handlWithdraw) // get info account
    router.post("/api/webapi/admin/recharge", adminController.middlewareAdminController, adminController.recharge) // get info account
-   router.post("/api/webapi/admin/rechargeDuyet", adminController.middlewareAdminController, adminController.rechargeDuyet) // get info account
+   router.post("/api/webapi/admin/rechargeDuyet", adminController.rechargeDuyet) // get info account
    router.post("/api/webapi/admin/member/info", adminController.middlewareAdminController, adminController.userInfo) // get info account
    router.post("/api/webapi/admin/statistical", adminController.middlewareAdminController, adminController.statistical2) // get info account
-
    router.post("/api/webapi/admin/banned", adminController.middlewareAdminController, adminController.banned) // get info account
 
    router.post("/api/webapi/admin/totalJoin", adminController.middlewareAdminController, adminController.totalJoin) // get info account
@@ -346,6 +354,11 @@ router.post('/admin/manager/settings/increaseWallet',adminController.middlewareA
   //  router.use('/dragon',middlewareController,dragonController.userDekh);
 
 
+  router.post("/bet",avatior.bet)
+  router.post("/cashout",avatior.cashout)
+  router.get("/nextcrash",avatior.nextCrash)
+
+  router.post("/callback",paymentController.callbackfromgateway)
 
 
 

@@ -345,6 +345,9 @@ const changeAdmin = async (req, res) => {
    }
 }
 
+
+
+
 function formateT(params) {
    let result = params < 10 ? "0" + params : params
    return result
@@ -601,10 +604,11 @@ const settingGet = async (req, res) => {
 }
 
 const rechargeDuyet = async (req, res) => {
-   let auth = req.cookies.auth
+   // let auth = req.cookies.auth
    let id = req.body.id
    let type = req.body.type
-   if (!auth || !id || !type) {
+   console.log(id,type ,"hahahahhahhhahhahahahhahahhhhahahha")
+   if (!id || !type) {
       return res.status(200).json({
          message: "Failed",
          status: false,
@@ -628,6 +632,11 @@ const rechargeDuyet = async (req, res) => {
       })
        
 
+
+
+      
+
+
       if (info[0].money == 1499 && user.extra === null) {
          console.log ("hello world haahaha")
          // await connection.query(`UPDATE users SET extra = true, ekyc = false WHERE phone = ?`, [user.phone]);
@@ -636,6 +645,14 @@ const rechargeDuyet = async (req, res) => {
             [false, user.phone]
           );
      }
+     await connection.query(
+      `UPDATE users SET first_recharge = true WHERE Phone = ? AND first_recharge IS NULL`,
+      [user.phone]  
+    );
+
+    
+    
+
 
      if (info[0].money == 699 && user.ekyc === 0) {
       await connection.query(`UPDATE users SET extra = true, ekyc = true WHERE phone = ?`, [user.phone]);
@@ -843,6 +860,78 @@ const handlWithdraw = async (req, res) => {
       })
    }
 }
+
+const apporvalAll = async (req, res) => {
+   // let auth = req.cookies.auth;
+   // let ids = req.body.ids; // optional array of ids
+   // let type = req.body.type;
+   let type = "confirm"
+
+   // if (!auth || !type) {
+   //    return res.status(200).json({
+   //       message: "Failed",
+   //       status: false,
+   //       timeStamp: timeNow,
+   //    });
+   // }
+
+   try {
+      if (type === "confirm") {
+         // If no IDs provided, find all with status = 0
+         let ids = null;
+         if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            const [pending] = await connection.query(
+               `SELECT id FROM withdraw WHERE status = 0`
+            );
+            ids = pending.map(item => item.id);
+         }
+
+        
+
+         for (let id of ids) {
+            // Update withdraw status to confirmed
+            await connection.query(`UPDATE withdraw SET status = 1 WHERE id = ? AND status = 0`, [id]);
+
+            // Get withdrawal info
+            const [info] = await connection.query(`SELECT * FROM withdraw WHERE id = ?`, [id]);
+            if (info.length === 0) continue;
+
+            const phone = info[0].phone;
+
+            // Get user info
+            const [userinfo] = await connection.query(`SELECT * FROM users WHERE phone = ?`, [phone]);
+            if (userinfo.length === 0) continue;
+
+            let user = userinfo[0];
+
+            // Set ekyc false if not set and extra is 0
+            if (user.extra == 0 && user.ekyc == null) {
+               await connection.query(
+                  `UPDATE users SET ekyc = false WHERE phone = ? AND ekyc IS NULL`,
+                  [user.phone]
+               );
+            }
+         }
+
+         return res.status(200).json({
+            message: "All confirmations successful",
+            status: true,
+         });
+      }
+
+      if (type === "delete") {
+         // Similar bulk delete logic can go here (if needed)
+      }
+
+   } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+         message: "Error while processing withdrawals",
+         status: false,
+      });
+   }
+};
+
 
 const settingBank = async (req, res) => {
    try {
@@ -2756,5 +2845,6 @@ module.exports = {
    aviatorResult,
    bulkSmsPage,
    filteredUser,
-   registerPartner
+   registerPartner,
+   apporvalAll
 }

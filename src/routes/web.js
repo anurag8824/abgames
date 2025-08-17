@@ -106,6 +106,9 @@ router.post('/admin/manager/settings/increaseWallet',adminController.middlewareA
    router.get("/ad/two",homeController.teletwo)
    router.get("/ad/th",homeController.teleth)
    router.get("/ad/th-fu",homeController.telefu)
+   router.get("/ad/th-fi",homeController.telefi)
+  router.get("/ad/th-si",homeController.telesi)
+
 
    router.get("/promotion",homeController.promotionPage)
    router.get("/checkIn/reward",middlewareController,homeController.attendance);

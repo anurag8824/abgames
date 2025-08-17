@@ -49,6 +49,12 @@ const teleth = async (req,res)=>{
 const telefu = async (req,res)=>{
     return res.render ("home/telefu.ejs")
 }
+const telefi = async (req,res)=>{
+    return res.render ("home/telefi.ejs")
+}
+const telesi = async (req,res)=>{
+    return res.render ("home/telesi.ejs")
+}
 
 const checkInPage = async (req, res) => {
     return res.render("checkIn/checkIn.ejs");
@@ -713,5 +719,7 @@ module.exports = {
     tele,
     teletwo,
     teleth ,
-    telefu   
+    telefu  ,
+    telefi,
+    telesi 
 }

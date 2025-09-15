@@ -152,8 +152,8 @@ const addManualUPIPaymentRequest = async (req, res) => {
             trade_type: 'INRUPI',      //INRUPI         // test channel for collection
             order_sn: orderId,  // unique order number
             money: moneyp * 100,                // order amount
-            notify_url: 'https://realcash.site/callback', // your callback URL
-            return_url: 'https://realcash.site/home', // user redirect URL
+            notify_url: 'https://wongo.site/callback', // your callback URL
+            return_url: 'https://wongo.site/home', // user redirect URL
             subject: 'Test Order'            // order description
         };
 
@@ -944,7 +944,7 @@ const callbackfromgateway = async (req, res) => {
         //     msg
         // });
 
-       const resdata =  await axios.post("https://realcash.site/api/webapi/admin/rechargeDuyet",{
+       const resdata =  await axios.post("https://wongo.site/api/webapi/admin/rechargeDuyet",{
             id:rows[0]?.id,
             type:"confirm"
         })

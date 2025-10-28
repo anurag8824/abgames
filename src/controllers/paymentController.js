@@ -144,8 +144,8 @@ const addManualUPIPaymentRequest = async (req, res) => {
 
 
         const url = 'https://www.lg-pay.com/api/order/create';
-        const key = '4LeNUEljMaLtD4mqiTcxqJWP3e3emiod';
-        const app_id = 'YD4463';
+        const key = 'VN8NHNnda0Rn72UqeIvTwhQuEV2yXVcn';
+        const app_id = 'YD4569';
 
         const params = {
             app_id,
@@ -902,7 +902,7 @@ const callbackfromgateway = async (req, res) => {
             sign
         } = req.body;
 
-        const key = '4LeNUEljMaLtD4mqiTcxqJWP3e3emiod'; // your secret key
+        const key = 'VN8NHNnda0Rn72UqeIvTwhQuEV2yXVcn'; // your secret key
 
         // 1. Verify the sign
         const params = {

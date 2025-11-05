@@ -144,16 +144,18 @@ const addManualUPIPaymentRequest = async (req, res) => {
 
 
         const url = 'https://www.lg-pay.com/api/order/create';
-        const key = 'VN8NHNnda0Rn72UqeIvTwhQuEV2yXVcn';
-        const app_id = 'YD4569';
+        // const key = 'VN8NHNnda0Rn72UqeIvTwhQuEV2yXVcn';
+               const key = 'O2UyHC65eofVs2xsGCjDzY2qVbybifea';
 
+        const app_id = 'YD4555';
+       //YD4569
         const params = {
             app_id,
             trade_type: 'INRUPI',      //INRUPI         // test channel for collection
             order_sn: orderId,  // unique order number
             money: moneyp * 100,                // order amount
-            notify_url: 'https://wongo.site/callback', // your callback URL
-            return_url: 'https://wongo.site/home', // user redirect URL
+            notify_url: 'https://jalwa.cash/callback', // your callback URL
+            return_url: 'https://jalwa.cash/home', // user redirect URL
             subject: 'Test Order'            // order description
         };
 
@@ -902,7 +904,9 @@ const callbackfromgateway = async (req, res) => {
             sign
         } = req.body;
 
-        const key = 'VN8NHNnda0Rn72UqeIvTwhQuEV2yXVcn'; // your secret key
+        // const key = 'VN8NHNnda0Rn72UqeIvTwhQuEV2yXVcn'; // your secret key
+            const key = 'O2UyHC65eofVs2xsGCjDzY2qVbybifea';
+
 
         // 1. Verify the sign
         const params = {

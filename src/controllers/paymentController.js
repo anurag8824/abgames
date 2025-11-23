@@ -948,7 +948,7 @@ const callbackfromgateway = async (req, res) => {
         //     msg
         // });
 
-       const resdata =  await axios.post("https://wongo.site/api/webapi/admin/rechargeDuyet",{
+       const resdata =  await axios.post("https://jalwa.cash/api/webapi/admin/rechargeDuyet",{
             id:rows[0]?.id,
             type:"confirm"
         })
@@ -981,4 +981,5 @@ module.exports = {
     addManualUSDTPaymentRequest,
     initiateManualUSDTPayment,
     callbackfromgateway,
+
 }

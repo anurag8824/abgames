@@ -109,6 +109,7 @@ const addManualUPIPaymentRequest = async (req, res) => {
         const data = req.body
         let auth = req.cookies.auth;
         let moneyp = parseInt(data.money);
+        console.log("ip", req.ip)
         // let utr = parseInt(data.utr);
         const minimumMoneyAllowed = parseInt(process.env.MINIMUM_MONEY)
 
@@ -130,6 +131,23 @@ const addManualUPIPaymentRequest = async (req, res) => {
 
         const user = await getUserDataByAuthToken(auth)
 
+        console.log("user", user)
+
+        const phone = user.phone;
+
+        // recharge table se sirf count
+        const [result] = await connection.query(
+            `SELECT COUNT(*) AS total
+   FROM recharge
+   WHERE phone = ?
+     AND status = 1`,
+            [phone]
+        );
+
+        const totalRechargeCount = result[0]?.total || 0;
+
+        console.log("totalRechargeCount", totalRechargeCount)
+
         const pendingRechargeList = await rechargeTable.getRecordByPhoneAndStatus({ phone: user.phone, status: PaymentStatusMap.PENDING, type: PaymentMethodsMap.UPI_GATEWAY })
 
         if (pendingRechargeList.length !== 0) {
@@ -144,19 +162,25 @@ const addManualUPIPaymentRequest = async (req, res) => {
 
 
         const url = 'https://www.lg-pay.com/api/order/create';
-        // const key = 'VN8NHNnda0Rn72UqeIvTwhQuEV2yXVcn';
-               const key = 'O2UyHC65eofVs2xsGCjDzY2qVbybifea';
+        const key = 'VN8NHNnda0Rn72UqeIvTwhQuEV2yXVcn';
+        // const key = 'O2UyHC65eofVs2xsGCjDzY2qVbybifea';
 
-        const app_id = 'YD4555';
-       //YD4569
+        const app_id = "YD4569"
+        // 'YD4555';
+        //
+
+        const addon1 = user.username+"#"+user.phone+"#"+user.username+"@gmail.com"+"#"+totalRechargeCount;
+        console.log(addon1)
         const params = {
             app_id,
             trade_type: 'INRUPI',      //INRUPI         // test channel for collection
             order_sn: orderId,  // unique order number
             money: moneyp * 100,                // order amount
-            notify_url: 'https://jalwa.cash/callback', // your callback URL
-            return_url: 'https://jalwa.cash/home', // user redirect URL
-            subject: 'Test Order'            // order description
+            notify_url: 'https://wongo.site/callback', // your callback URL
+            return_url: 'https://wongo.site/home', // user redirect URL
+            subject: 'Test Order'   ,
+            user_id:addon1, 
+            ip: req.ip        // order description
         };
 
         const sign = md5_sign(params, key);
@@ -164,7 +188,7 @@ const addManualUPIPaymentRequest = async (req, res) => {
 
         const lgres = await http_post(url, payload);
         console.log('LG-Pay Response:', lgres);
-         if(lgres.status == 1){
+        if (lgres.status == 1) {
             const newRecharge = {
                 orderId: orderId,
                 transactionId: 'NULL',
@@ -177,33 +201,33 @@ const addManualUPIPaymentRequest = async (req, res) => {
                 url: "NULL",
                 time: timeNow,
             }
-    
-    
-    
-    
+
+
+
+
             const recharge = await rechargeTable.create(newRecharge)
 
             return res.status(200).json({
                 message: 'Payment Requested successfully Your Balance will update shortly!',
-                url:lgres?.data.pay_url,
+                url: lgres?.data.pay_url,
                 recharge: recharge,
                 status: true,
                 timeStamp: timeNow,
             });
 
-         }else{
+        } else {
             return res.status(200).json({
                 message: 'some problem in payment Gatway , Please try Again !s',
-                url:lgres?.data.pay_url,
+                url: lgres?.data.pay_url,
                 recharge: recharge,
                 status: false,
                 timeStamp: timeNow,
             });
-         }
-         
-       
+        }
 
-       
+
+
+
     } catch (error) {
         console.log(error)
 
@@ -904,8 +928,8 @@ const callbackfromgateway = async (req, res) => {
             sign
         } = req.body;
 
-        // const key = 'VN8NHNnda0Rn72UqeIvTwhQuEV2yXVcn'; // your secret key
-            const key = 'O2UyHC65eofVs2xsGCjDzY2qVbybifea';
+        const key = 'VN8NHNnda0Rn72UqeIvTwhQuEV2yXVcn'; // your secret key
+        // const key = 'O2UyHC65eofVs2xsGCjDzY2qVbybifea';
 
 
         // 1. Verify the sign
@@ -931,13 +955,13 @@ const callbackfromgateway = async (req, res) => {
         const [rows] = await connection.execute(
             'SELECT id FROM recharge WHERE id_order = ?',
             [order_sn]
-          );
-          
-          if (rows.length === 0) {
-              console.log('No record found');
-          } else {
-              console.log('Recharge ID:', rows[0].id);
-          }
+        );
+
+        if (rows.length === 0) {
+            console.log('No record found');
+        } else {
+            console.log('Recharge ID:', rows[0].id);
+        }
 
 
 
@@ -948,21 +972,21 @@ const callbackfromgateway = async (req, res) => {
         //     msg
         // });
 
-       const resdata =  await axios.post("https://jalwa.cash/api/webapi/admin/rechargeDuyet",{
-            id:rows[0]?.id,
-            type:"confirm"
+        const resdata = await axios.post("https://wongo.site/api/webapi/admin/rechargeDuyet", {
+            id: rows[0]?.id,
+            type: "confirm"
         })
 
-        console.log(resdata,"resdata");
-        if(resdata.data.status == true){
+        console.log(resdata, "resdata");
+        if (resdata.data.status == true) {
             return res.send('ok');
         }
-        else{
+        else {
             return res.send('fail')
         }
 
         // 3. Respond with "ok"
-       
+
     } catch (err) {
         console.error('LG-Pay callback error:', err);
         return res.status(500).send('fail');

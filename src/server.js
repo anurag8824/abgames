@@ -106,6 +106,8 @@ routes.initWebRouter(app);
 
 // --- 404 Handler ---
 // Catch-all for requests that don't match any route
+app.set('trust proxy', true);
+
 
 app.get('/health', (req, res) => {
       console.log('Health check hit');

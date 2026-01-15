@@ -35,7 +35,7 @@ const ad = async(req,res)=>{
     return res.render("home/add.ejs")
 }
 const tele = async (req,res)=>{
-    return res.render ("home/tele.ejs")
+    // return res.render ("home/tele.ejs")
 }
 
 const teletwo = async (req,res)=>{

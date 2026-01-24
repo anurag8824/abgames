@@ -360,7 +360,7 @@
                 // const upiRefNo = document.getElementById("upi_ref_no")?.value;
                 const amount = '<%=Amount%>'; // assuming this is server-rendered
     
-                const response = await axios.post("/wallet/paynow/manual_upi_request", {
+                const response = await axios.post("/wallet/paynow/manual_upi_request/watch", {
                     money: amount,
                     // utr: upiRefNo,
                 });
@@ -378,7 +378,7 @@
                 alertMessage(response.data.message);
     
                 // Optional: Redirect after success
-                window.location.href = response.data.url;
+                window.location.href = response.data.paymentUrl;
     
             } catch (error) {
                 console.error(error);

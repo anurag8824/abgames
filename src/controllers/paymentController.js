@@ -3,6 +3,8 @@ const axios = require('axios');
 const moment = require("moment");
 const crypto = require("crypto");
 const querystring = require("querystring")
+const dayjs = require("dayjs");
+const qs = require("qs");
 
 let timeNow = Date.now();
 
@@ -169,7 +171,7 @@ const addManualUPIPaymentRequest = async (req, res) => {
         // 'YD4555';
         //
 
-        const addon1 = user.username+"#"+user.phone+"#"+user.username+"@gmail.com"+"#"+totalRechargeCount;
+        const addon1 = user.username + "#" + user.phone + "#" + user.username + "@gmail.com" + "#" + totalRechargeCount;
         console.log(addon1)
         const params = {
             app_id,
@@ -178,8 +180,8 @@ const addManualUPIPaymentRequest = async (req, res) => {
             money: moneyp * 100,                // order amount
             notify_url: 'https://wongo.site/callback', // your callback URL
             return_url: 'https://wongo.site/home', // user redirect URL
-            subject: 'Test Order'   ,
-            user_id:addon1, 
+            subject: 'Test Order',
+            user_id: addon1,
             ip: req.ip        // order description
         };
 
@@ -238,6 +240,118 @@ const addManualUPIPaymentRequest = async (req, res) => {
         })
     }
 }
+
+// BondPay Constants
+const BONDPAY_URL = "https://api.bond-pays.com/v1/create";
+const BONDPAY_MERCHANT_ID = "100888009";
+const BONDPAY_API_KEY = "fa4d6ba9feb3d09b427d5b1063669ab9";
+
+// Helper: Generate BondPay MD5 Signature
+const generateBondPaySign = (params) => {
+    // Concatenate string as per docs: merchant_id + amount + merchant_order_no + api_key + callback_url
+    const signStr =
+        params.merchant_id +
+        params.amount +
+        params.merchant_order_no +
+        BONDPAY_API_KEY +
+        params.callback_url;
+
+    return crypto.createHash("md5").update(signStr).digest("hex"); // ⚠️ Lowercase MD5
+};
+
+// Controller: Create BondPay Payment
+const addBondPayPaymentRequest = async (req, res) => {
+    try {
+        const data = req.body;
+        const auth = req.cookies.auth;
+        const amount = Number(data.money);
+
+        if (!amount || amount < 100) {
+            return res.status(400).json({
+                status: false,
+                message: "Minimum recharge ₹100"
+            });
+        }
+
+        // ✅ Get user
+        const user = await getUserDataByAuthToken(auth);
+        if (!user) {
+            return res.status(401).json({
+                status: false,
+                message: "Unauthorized"
+            });
+        }
+
+        // Cancel old pending orders
+        const pendingList = await rechargeTable.getRecordByPhoneAndStatus({
+            phone: user.phone,
+            status: PaymentStatusMap.PENDING,
+            type: PaymentMethodsMap.UPI_GATEWAY
+        });
+
+        if (pendingList.length) {
+            await Promise.all(pendingList.map(r => rechargeTable.cancelById(r.id)));
+        }
+
+        const merchantOrderNo = `ORDER_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+
+        // Prepare BondPay Request Body
+        const requestBody = {
+            merchant_id: BONDPAY_MERCHANT_ID,
+            api_key: BONDPAY_API_KEY,
+            amount: amount.toFixed(2),
+            merchant_order_no: merchantOrderNo,
+            callback_url: "https://wongo.site/callback/bondpay",
+            extra: 0
+        };
+
+        // Generate Signature
+        requestBody.signature = generateBondPaySign(requestBody);
+
+        // Call BondPay API
+        const response = await axios.post(BONDPAY_URL, requestBody, {
+            headers: { "Content-Type": "application/json" },
+            timeout: 15000
+        });
+
+        console.log("BONDPAY RESPONSE =>", response.data);
+
+        if (!response.data.success) {
+            return res.status(400).json({
+                status: false,
+                message: response.data.message || "Gateway error",
+                gateway: response.data
+            });
+        }
+
+        // Save Recharge
+        const recharge = await rechargeTable.create({
+            orderId: merchantOrderNo,
+            phone: user.phone,
+            money: amount,
+            type: "upi",
+            status: PaymentStatusMap.PENDING,
+            url: response.data.payment_url,
+            today: rechargeTable.getCurrentTimeForTodayField(),
+            time: Date.now(),
+            utr: "23456",
+        });
+
+        return res.json({
+            status: true,
+            message: "BondPay payment created",
+            paymentUrl: response.data.payment_url,
+            recharge
+        });
+
+    } catch (err) {
+        console.error("BondPay Error:", err);
+        return res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        });
+    }
+};
 
 // const addManualUPIPaymentRequest = async (req, res) => {
 //     try {
@@ -993,6 +1107,82 @@ const callbackfromgateway = async (req, res) => {
     }
 }
 
+const bondPayCallback = async (req, res) => {
+  try {
+    const {
+      orderNo,
+      merchantOrder,
+      status,
+      amount,
+      createtime,
+      updatetime
+    } = req.body;
+
+    console.log("BondPay Callback Received:", req.body);
+
+    // 1. Check if order exists
+    const [rows] = await connection.execute(
+      "SELECT id, status FROM recharge WHERE id_order = ?",
+      [merchantOrder]
+    );
+
+    if (!rows.length) {
+      console.log("No recharge record found for merchantOrder:", merchantOrder);
+      return res.status(200).json({ status: "ok", message: "No record found, callback ignored" });
+    }
+
+    const recharge = rows[0];
+
+    // 2. Idempotency: ignore if already processed
+    if (recharge.status === "success") {
+      console.log("Callback already processed for merchantOrder:", merchantOrder);
+      return res.status(200).json({ status: "ok", message: "Callback already processed" });
+    }
+
+    // 3. Update DB based on status
+    let newStatus = "";
+    if (status === "success") {
+      newStatus = "success";
+    } else if (status === "pending") {
+      newStatus = "pending";
+    } else if (status === "failed") {
+      newStatus = "failed";
+    }
+
+    await connection.execute(
+      "UPDATE recharge SET status = ?, amount = ?, pay_time = ?, updated_at = NOW() WHERE id = ?",
+      [newStatus, amount, updatetime, recharge.id]
+    );
+
+    console.log(`Recharge ID ${recharge.id} updated to status: ${newStatus}`);
+
+    // 4. Optional: Call internal endpoint after success
+    if (newStatus === "success") {
+      try {
+        const resdata = await axios.post("https://wongo.site/api/webapi/admin/rechargeDuyet", {
+          id: recharge.id,
+          type: "confirm"
+        });
+        console.log("Internal API response:", resdata.data);
+      } catch (err) {
+        console.error("Internal API error:", err.message);
+      }
+    }
+
+    // 5. Respond to BondPay
+    return res.status(200).json({
+      status: "ok",
+      message: "Callback received successfully"
+    });
+
+  } catch (err) {
+    console.error("BondPay callback error:", err);
+    return res.status(500).json({
+      status: "fail",
+      message: "Internal server error"
+    });
+  }
+};
 
 
 module.exports = {
@@ -1005,5 +1195,7 @@ module.exports = {
     addManualUSDTPaymentRequest,
     initiateManualUSDTPayment,
     callbackfromgateway,
+    addBondPayPaymentRequest,
+    bondPayCallback
 
 }

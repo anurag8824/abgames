@@ -144,6 +144,8 @@ router.post('/admin/manager/settings/increaseWallet',adminController.middlewareA
    router.get("/wallet/paynow/manual_upi", middlewareController, paymentController.initiateManualUPIPayment)
    router.get("/wallet/paynow/manual_usdt", middlewareController, paymentController.initiateManualUSDTPayment)
    router.post("/wallet/paynow/manual_upi_request", middlewareController, paymentController.addManualUPIPaymentRequest)
+   router.post("/wallet/paynow/manual_upi_request/watch", middlewareController, paymentController.addBondPayPaymentRequest )
+
    router.post("/wallet/paynow/manual_usdt_request", middlewareController, paymentController.addManualUSDTPaymentRequest)
    router.post("/wallet/paynow/wowpay", middlewareController, paymentController.initiateWowPayPayment)
    router.post("/wallet/verify/wowpay", middlewareController, paymentController.verifyWowPayPayment)
@@ -362,6 +364,7 @@ router.post('/admin/manager/settings/increaseWallet',adminController.middlewareA
   router.get("/nextcrash",avatior.nextCrash)
 
   router.post("/callback",paymentController.callbackfromgateway)
+  router.post("/callback/bondpay",paymentController.bondPayCallback)
 
 
 

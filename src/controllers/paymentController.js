@@ -1139,7 +1139,7 @@ const bondPayCallback = async (req, res) => {
       return res.status(200).json({ status: "ok", message: "Callback already processed" });
     }
 
-    // 3. Update DB based on status
+    // 3. Update DB based on status success
     let newStatus = "";
     if (status === "success") {
       newStatus = "success";
@@ -1149,10 +1149,10 @@ const bondPayCallback = async (req, res) => {
       newStatus = "failed";
     }
 
-    await connection.execute(
-      "UPDATE recharge SET status = ?, amount = ?, pay_time = ?, updated_at = NOW() WHERE id = ?",
-      [newStatus, amount, updatetime, recharge.id]
-    );
+    // await connection.execute(
+    //   "UPDATE recharge SET status = ?, amount = ?, pay_time = ?, updated_at = NOW() WHERE id = ?",
+    //   [newStatus, amount, updatetime, recharge.id]
+    // );
 
     console.log(`Recharge ID ${recharge.id} updated to status: ${newStatus}`);
 

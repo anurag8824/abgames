@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -248,4 +248,237 @@
 
 </body>
 
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manual UPI</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js"
+        integrity="sha512-NQfB/bDaB8kaSXF8E77JjhHG5PM6XVRxvHzkZiwl3ddWCEPBa23T76MuWSwAJdMGJnmQqM0VeY9kFszsrBEFrQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body>
+
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: 100%;
+            max-width: 550px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f2f2f2;
+            padding: 6px;
+            margin: 15px 10px;
+            border-radius: 12px;
+        }
+
+        footer {
+            background-color: #f2f2f2;
+            padding: 6px;
+            text-align: center;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            margin: 0px 10px;
+            margin-top: auto;
+        }
+
+        .verification_form__root {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f2f2f2;
+            padding: 15px 25px 25px;
+            margin: 15px 10px;
+            border-radius: 12px;
+        }
+
+        .verification_form__root label {
+            font-weight: 600;
+        }
+
+        .verification_form__root input {
+            padding: 10px 13px;
+            border-radius: 9px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        /* UPI SECTION */
+        .upi-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .upi-box {
+            flex: 1;
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            transition: 0.2s;
+        }
+
+        .upi-box:hover {
+            border-color: #1c4ff7;
+            transform: scale(1.03);
+        }
+
+        .upi-box img {
+            width: 80px;
+        }
+
+        .upi-box p {
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        .upi-note {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        /* TOAST */
+        .msg {
+            position: fixed;
+            left: 50%;
+            top: 30px;
+            transform: translateX(-50%);
+            z-index: 9999;
+        }
+
+        .msg-content {
+            background: #000;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+    </style>
+
+    <main>
+        <header>
+            <h2>Select Payment Gateway</h2>
+        </header>
+
+        <div class="verification_form__root">
+            <label>Amount</label>
+            <input type="text" value="<%= Amount %>" disabled />
+
+            <!-- UPI OPTIONS -->
+            <div class="upi-container">
+                <div class="upi-box" id="upi1">
+                    <img src="/images/upi.png" alt="UPI 1">
+                    <p>UPI 1</p>
+                </div>
+
+                <div class="upi-box" id="upi2">
+                    <img src="/images/upi.png" alt="UPI 2">
+                    <p>UPI 2</p>
+                </div>
+            </div>
+
+            <div class="upi-note">
+                <p><strong>Note:</strong> In case of payment failure, please select UPI 1 or UPI 2.</p>
+                <p><strong>नोट:</strong> पेमेंट फेल होने की स्थिति में कृपया UPI 1 या UPI 2 का चयन करें।</p>
+            </div>
+        </div>
+
+        <footer></footer>
+    </main>
+
+    <script>
+        const alertMessage = (text) => {
+            const msg = document.createElement('div');
+            msg.className = 'msg';
+
+            const msgContent = document.createElement('div');
+            msgContent.className = 'msg-content';
+            msgContent.textContent = text;
+
+            msg.appendChild(msgContent);
+            document.body.appendChild(msg);
+
+            setTimeout(() => {
+                if (document.body.contains(msg)) {
+                    document.body.removeChild(msg);
+                }
+            }, 1500);
+        };
+
+        const amount = "<%= Amount %>";
+
+        const callPaymentApi = async (url) => {
+            try {
+                alertMessage("Processing...");
+
+                const response = await axios.post(url, { money: amount });
+
+                if (!response?.data || response.data.status === false) {
+                    alertMessage(response?.data?.message || "Failed!");
+                    return;
+                }
+
+                alertMessage("Redirecting...");
+
+                if (response.data.paymentUrl) {
+                    window.location.href = response.data.paymentUrl;
+                    return;
+                }
+
+                if (response.data.url) {
+                    window.location.href = response.data.url;
+                    return;
+                }
+
+                alertMessage("Payment URL not found!");
+
+            } catch (err) {
+                console.error(err);
+                alertMessage("Something went wrong!");
+            }
+        };
+
+        // CLICK EVENTS
+        document.getElementById("upi1").addEventListener("click", () => {
+            callPaymentApi("/wallet/paynow/manual_upi_request"); // LG PAY
+        });
+
+        document.getElementById("upi2").addEventListener("click", () => {
+            callPaymentApi("/wallet/paynow/manual_upi_request/watch"); // BOND PAY
+        });
+    </script>
+
+</body>
 </html>
